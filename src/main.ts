@@ -10,6 +10,12 @@ async function bootstrap() {
     .setTitle('teus-lab-api')
     .setDescription('The teuslab api')
     .setVersion('1.0')
+    .addSecurity('Authorization', {
+      type: 'apiKey',
+      name: 'Authorization',
+      description: 'enter with the authorization token',
+      in: 'header',
+    })
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
