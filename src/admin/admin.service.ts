@@ -11,6 +11,8 @@ import { AuthAdminDto } from './dto/auth-admin.dto';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { UpdateAdminDto } from './dto/update-admin.dto';
+import { encriptPassword } from '../utils/bcrypt-password';
 
 @Injectable()
 export class AdminService {
@@ -77,6 +79,45 @@ export class AdminService {
         return accessToken;
       } else {
         throw new UnauthorizedException('Please check your login credentials');
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateAdmin(updateAdmindto: UpdateAdminDto, admin: any): Promise<void> {
+    try {
+      const adminLoggedObject = await this.adminExists(admin.email);
+
+      if (!adminLoggedObject) {
+        throw new UnauthorizedException(
+          'You are not connected or not allowed to update',
+        );
+      }
+
+      const adminObject = await this.adminExists(updateAdmindto.email);
+
+      if (adminObject.email !== admin.email) {
+        throw new BadRequestException('This email already in use');
+      }
+
+      const newPassword = updateAdmindto.password
+        ? await encriptPassword(updateAdmindto.password)
+        : adminLoggedObject.password;
+
+      const result = await this.adminRepository.update(
+        {
+          adminId: adminLoggedObject.adminId,
+        },
+        {
+          username: updateAdmindto.username,
+          email: updateAdmindto.email,
+          password: newPassword,
+        },
+      );
+
+      if (result.affected === 0) {
+        throw new BadRequestException('Could not update account');
       }
     } catch (error) {
       throw error;

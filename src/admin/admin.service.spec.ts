@@ -1,7 +1,7 @@
 import { UnauthorizedException } from '@nestjs/common';
 import { BadRequestException } from '@nestjs/common/exceptions/bad-request.exception';
 import { JwtService } from '@nestjs/jwt';
-import { InsertResult, Repository } from 'typeorm';
+import { InsertResult, Repository, UpdateResult } from 'typeorm';
 import { Admin } from './admin.entity';
 import { AdminService } from './admin.service';
 
@@ -65,6 +65,48 @@ describe('AdminService', () => {
 
       await expect(sut.loginAdmin(payload)).resolves.toEqual('123');
     });
+
+    it('should update admin', async () => {
+      const { adminRepositoryMock, sut } = makeSut();
+
+      const updateResult = new UpdateResult();
+      updateResult.affected = 1;
+      const admin = new Admin();
+      admin.password = 'password';
+      admin.email = payload.email;
+      admin.username = payload.username;
+
+      jest.spyOn(sut, 'adminExists').mockResolvedValueOnce(admin);
+
+      jest.spyOn(sut, 'adminExists').mockResolvedValueOnce(admin);
+
+      jest.spyOn(adminRepositoryMock, 'update').mockResolvedValue(updateResult);
+
+      await expect(sut.updateAdmin(payload, admin)).resolves.toBeUndefined();
+    });
+
+    it('should update admin not passing password', async () => {
+      const { adminRepositoryMock, sut } = makeSut();
+
+      const updateResult = new UpdateResult();
+      updateResult.affected = 1;
+      const admin = new Admin();
+      admin.password = 'password';
+      admin.email = payload.email;
+      admin.username = payload.username;
+
+      jest.spyOn(sut, 'adminExists').mockResolvedValueOnce(admin);
+
+      jest.spyOn(sut, 'adminExists').mockResolvedValueOnce(admin);
+
+      jest.spyOn(adminRepositoryMock, 'update').mockResolvedValue(updateResult);
+
+      const payload2 = {
+        ...payload,
+        password: '',
+      };
+      await expect(sut.updateAdmin(payload2, admin)).resolves.toBeUndefined();
+    });
   });
 
   describe('Error tests', () => {
@@ -117,6 +159,60 @@ describe('AdminService', () => {
 
       await expect(sut.loginAdmin(payload)).rejects.toThrow(
         new UnauthorizedException('Please check your login credentials'),
+      );
+    });
+
+    it('should not found admin account', () => {
+      const { sut } = makeSut();
+      jest.spyOn(sut, 'adminExists').mockResolvedValue(undefined);
+
+      expect(sut.updateAdmin(payload, new Admin())).rejects.toThrow(
+        new UnauthorizedException(
+          'You are not connected or not allowed to update',
+        ),
+      );
+    });
+
+    it('should return error messge email already in use', () => {
+      const { sut } = makeSut();
+
+      const admin = new Admin();
+      admin.password = 'password';
+      admin.email = payload.email;
+      admin.username = payload.username;
+
+      jest.spyOn(sut, 'adminExists').mockResolvedValueOnce(admin);
+
+      const admin2 = new Admin();
+      admin2.password = 'password';
+      admin2.email = 'joao@silva.com';
+      admin2.username = payload.username;
+
+      jest.spyOn(sut, 'adminExists').mockResolvedValueOnce(admin2);
+
+      expect(sut.updateAdmin(payload, admin)).rejects.toThrow(
+        new BadRequestException('This email already in use'),
+      );
+    });
+
+    it('should not update admin', async () => {
+      const { adminRepositoryMock, sut } = makeSut();
+
+      const updateResult = new UpdateResult();
+      updateResult.affected = 0;
+      const admin = new Admin();
+      admin.password = 'password';
+      admin.email = payload.email;
+      admin.username = payload.username;
+
+      jest.spyOn(sut, 'adminExists').mockResolvedValueOnce(admin);
+
+      jest.spyOn(sut, 'adminExists').mockResolvedValueOnce(admin);
+
+      jest.spyOn(adminRepositoryMock, 'update').mockResolvedValue(updateResult);
+
+      await expect(sut.updateAdmin(payload, admin)).rejects.toThrow(
+        new BadRequestException('Could not update account'),
       );
     });
   });
