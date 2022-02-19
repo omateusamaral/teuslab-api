@@ -37,12 +37,17 @@ export class AdminController {
     return await this.adminService.loginAdmin(authAdminDto);
   }
   @Post()
+  @UseGuards(AuthGuard())
+  @ApiSecurity('Authorization')
   @ApiBody({ type: CreateAdminDto })
   @ApiOperation({
     summary: 'Register a new admin account',
   })
-  async createAdmin(@Body() creatAdminDto: CreateAdminDto): Promise<string> {
-    return await this.adminService.createAdmin(creatAdminDto);
+  async createAdmin(
+    @Body() creatAdminDto: CreateAdminDto,
+    @Req() request: Request,
+  ): Promise<string> {
+    return await this.adminService.createAdmin(creatAdminDto, request.user);
   }
 
   @Put()
