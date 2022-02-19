@@ -23,11 +23,13 @@ export class AdminService {
   ) {}
 
   async adminExists(email: string): Promise<Admin | undefined> {
-    const admin = await this.adminRepository.findOne({
-      where: {
+    const admin = await this.adminRepository
+      .createQueryBuilder('admin')
+      .where('admin.email=:email', {
         email,
-      },
-    });
+      })
+      .addSelect('admin.password')
+      .getOne();
 
     if (!admin) {
       return undefined;
@@ -119,6 +121,30 @@ export class AdminService {
       if (result.affected === 0) {
         throw new BadRequestException('Could not update account');
       }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getAdmins(admin: any, email?: string): Promise<Admin[]> {
+    try {
+      const adminExists = await this.adminExists(admin.email);
+
+      if (!adminExists) {
+        throw new BadRequestException('Admin account not found');
+      }
+
+      let admins = this.adminRepository.createQueryBuilder('admin');
+
+      if (email) {
+        admins = admins.where('admin.email like :email', {
+          email: `%${email}%`,
+        });
+      }
+
+      console.log(email);
+
+      return await admins.getMany();
     } catch (error) {
       throw error;
     }

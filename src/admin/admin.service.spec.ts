@@ -16,10 +16,16 @@ describe('AdminService', () => {
     });
     const sut = new AdminService(adminRepositoryMock, jwtService);
 
+    const queryBuilder: any = {
+      where: () => queryBuilder,
+      addSelect: () => queryBuilder,
+      getOne: () => new Admin(),
+    };
     return {
       sut,
       adminRepositoryMock,
       jwtService,
+      queryBuilder,
     };
   };
 
@@ -45,9 +51,11 @@ describe('AdminService', () => {
       );
     });
     it('should found admin account', () => {
-      const { adminRepositoryMock, sut } = makeSut();
+      const { adminRepositoryMock, sut, queryBuilder } = makeSut();
 
-      jest.spyOn(adminRepositoryMock, 'findOne').mockResolvedValue(new Admin());
+      jest
+        .spyOn(adminRepositoryMock, 'createQueryBuilder')
+        .mockReturnValue(queryBuilder);
 
       expect(sut.adminExists(payload.email)).resolves.toEqual(new Admin());
     });
@@ -131,9 +139,12 @@ describe('AdminService', () => {
     });
 
     it('should not found admin', () => {
-      const { adminRepositoryMock, sut } = makeSut();
+      const { adminRepositoryMock, sut, queryBuilder } = makeSut();
 
-      jest.spyOn(adminRepositoryMock, 'findOne').mockResolvedValue(undefined);
+      jest.spyOn(queryBuilder, 'getOne').mockReturnValue(undefined);
+      jest
+        .spyOn(adminRepositoryMock, 'createQueryBuilder')
+        .mockReturnValue(queryBuilder);
 
       expect(sut.adminExists(payload.email)).resolves.toEqual(undefined);
     });

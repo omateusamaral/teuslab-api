@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 export class UpdateAdminDto {
   @ApiProperty({ description: 'username', example: 'admin' })
   @IsNotEmpty({ message: 'username must be not empty' })
@@ -13,6 +13,5 @@ export class UpdateAdminDto {
 
   @ApiProperty({ description: 'password', example: 'password', minLength: 8 })
   @IsString({ message: 'password must bet a string' })
-  @MinLength(8, { message: 'password must be at least 8 characters' })
   password = '';
 }
