@@ -3,10 +3,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AdminController } from './admin.controller';
-import { Admin } from './admin.entity';
-import { AdminService } from './admin.service';
-import { AdminJwtStrategy } from './jwt.strategy';
+import { UserJwtStrategy } from './jwt.strategy';
+import { UserController } from './user.controller';
+import { User } from './user.entity';
+import { UserService } from './user.service';
 
 @Module({
   imports: [
@@ -22,11 +22,11 @@ import { AdminJwtStrategy } from './jwt.strategy';
         },
       }),
     }),
-    TypeOrmModule.forFeature([Admin]),
+    TypeOrmModule.forFeature([User]),
   ],
 
-  controllers: [AdminController],
-  providers: [AdminService, AdminJwtStrategy],
-  exports: [AdminJwtStrategy, PassportModule],
+  controllers: [UserController],
+  providers: [UserService, UserJwtStrategy],
+  exports: [UserJwtStrategy, PassportModule],
 })
-export class AdminModule {}
+export class UserModule {}

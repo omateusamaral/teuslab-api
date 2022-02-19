@@ -5,13 +5,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { IValidateTypes } from '../types/validate-types.interface';
 import { Repository } from 'typeorm';
-import { Admin } from './admin.entity';
+import { User } from './user.entity';
 
 @Injectable()
-export class AdminJwtStrategy extends PassportStrategy(Strategy) {
+export class UserJwtStrategy extends PassportStrategy(Strategy) {
   constructor(
-    @InjectRepository(Admin)
-    private adminRepository: Repository<Admin>,
+    @InjectRepository(User)
+    private UserRepository: Repository<User>,
     private configService: ConfigService,
   ) {
     super({
@@ -19,13 +19,13 @@ export class AdminJwtStrategy extends PassportStrategy(Strategy) {
       secretOrKey: configService.get('JWT_SECRET'),
     });
   }
-  async validate(payload: IValidateTypes): Promise<Admin> {
-    const admin = await this.adminRepository.findOne({ email: payload.email });
+  async validate(payload: IValidateTypes): Promise<User> {
+    const user = await this.UserRepository.findOne({ email: payload.email });
 
-    if (!admin) {
+    if (!user) {
       throw new UnauthorizedException();
     }
 
-    return admin;
+    return user;
   }
 }
