@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { IValidateJwt } from '../types/admin-types.interface';
 import { Repository } from 'typeorm';
 import { Admin } from './admin.entity';
 
@@ -18,7 +19,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       secretOrKey: configService.get('JWT_SECRET'),
     });
   }
-  async validate(payload: any): Promise<Admin> {
+  async validate(payload: IValidateJwt): Promise<Admin> {
     const admin = await this.adminRepository.findOne({ email: payload.email });
 
     if (!admin) {

@@ -37,16 +37,12 @@ export class AdminService {
     return admin;
   }
 
-  async createAdmin(
-    { email, password, username }: CreateAdminDto,
-    adminUser: any,
-  ): Promise<string> {
+  async createAdmin({
+    email,
+    password,
+    username,
+  }: CreateAdminDto): Promise<string> {
     try {
-      const adminExists = await this.adminExists(adminUser.email);
-
-      if (!adminExists) {
-        throw new UnauthorizedException('Admin account not found');
-      }
       if (await this.adminExists(email)) {
         throw new BadRequestException('Email already in use');
       }
@@ -130,14 +126,8 @@ export class AdminService {
     }
   }
 
-  async getAdmins(admin: any, email?: string): Promise<Admin[]> {
+  async getAdmins(email?: string): Promise<Admin[]> {
     try {
-      const adminExists = await this.adminExists(admin.email);
-
-      if (!adminExists) {
-        throw new UnauthorizedException('Admin account not found');
-      }
-
       let admins = this.adminRepository.createQueryBuilder('admin');
 
       if (email) {
@@ -145,8 +135,6 @@ export class AdminService {
           email: `%${email}%`,
         });
       }
-
-      console.log(admins);
 
       return await admins.getMany();
     } catch (error) {

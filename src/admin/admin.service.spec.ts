@@ -49,10 +49,9 @@ describe('AdminService', () => {
       const { adminRepositoryMock, sut } = makeSut();
       const insertResult = new InsertResult();
       insertResult.raw = [{ adminId: 'f434ac20-a6ee-403e-bdfa-0ee3fd7eca9d' }];
-      jest.spyOn(sut, 'adminExists').mockResolvedValueOnce(new Admin());
       jest.spyOn(sut, 'adminExists').mockResolvedValueOnce(undefined);
       jest.spyOn(adminRepositoryMock, 'insert').mockResolvedValue(insertResult);
-      expect(sut.createAdmin(payload, new Admin())).resolves.toEqual(
+      expect(sut.createAdmin(payload)).resolves.toEqual(
         'f434ac20-a6ee-403e-bdfa-0ee3fd7eca9d',
       );
     });
@@ -125,44 +124,30 @@ describe('AdminService', () => {
     it('should get admins', () => {
       const { adminRepositoryMock, sut, queryBuilderGetMany } = makeSut();
 
-      jest.spyOn(sut, 'adminExists').mockResolvedValue(new Admin());
-
       jest
         .spyOn(adminRepositoryMock, 'createQueryBuilder')
         .mockReturnValue(queryBuilderGetMany);
 
-      expect(sut.getAdmins(new Admin(), '')).resolves.toEqual([new Admin()]);
+      expect(sut.getAdmins('')).resolves.toEqual([new Admin()]);
     });
 
     it('should get admins filter by email', () => {
       const { adminRepositoryMock, sut, queryBuilderGetMany } = makeSut();
 
-      jest.spyOn(sut, 'adminExists').mockResolvedValue(new Admin());
-
       jest
         .spyOn(adminRepositoryMock, 'createQueryBuilder')
         .mockReturnValue(queryBuilderGetMany);
 
-      expect(sut.getAdmins(new Admin(), 'admin@email.com')).resolves.toEqual([
-        new Admin(),
-      ]);
+      expect(sut.getAdmins('admin@email.com')).resolves.toEqual([new Admin()]);
     });
   });
 
   describe('Error tests', () => {
-    it('should not found admin account', () => {
-      const { sut } = makeSut();
-      jest.spyOn(sut, 'adminExists').mockResolvedValue(undefined);
-
-      expect(sut.createAdmin(payload, new Admin())).rejects.toThrow(
-        new UnauthorizedException('Admin account not found'),
-      );
-    });
     it('should return error message about email already in use', () => {
       const { sut } = makeSut();
       jest.spyOn(sut, 'adminExists').mockResolvedValue(new Admin());
 
-      expect(sut.createAdmin(payload, new Admin())).rejects.toThrow(
+      expect(sut.createAdmin(payload)).rejects.toThrow(
         new BadRequestException('Email already in use'),
       );
     });
@@ -170,11 +155,10 @@ describe('AdminService', () => {
       const { adminRepositoryMock, sut } = makeSut();
       const insertResult = new InsertResult();
       insertResult.raw = [];
-      jest.spyOn(sut, 'adminExists').mockResolvedValueOnce(new Admin());
       jest.spyOn(sut, 'adminExists').mockResolvedValueOnce(undefined);
       jest.spyOn(adminRepositoryMock, 'insert').mockResolvedValue(undefined);
 
-      expect(sut.createAdmin(payload, new Admin())).rejects.toThrow(
+      expect(sut.createAdmin(payload)).rejects.toThrow(
         new BadRequestException('Could not insert the account'),
       );
     });
@@ -265,16 +249,6 @@ describe('AdminService', () => {
 
       await expect(sut.updateAdmin(payload, admin)).rejects.toThrow(
         new BadRequestException('Could not update account'),
-      );
-    });
-
-    it('should not found admin account when get admins', () => {
-      const { sut } = makeSut();
-
-      jest.spyOn(sut, 'adminExists').mockResolvedValue(undefined);
-
-      expect(sut.getAdmins(new Admin(), '')).rejects.toThrow(
-        new UnauthorizedException('Admin account not found'),
       );
     });
   });
