@@ -1,8 +1,11 @@
-import { Body, Controller, Post } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Post, Put, Req, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { ApiBody, ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { AuthDto } from '../admin/dto/auth.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserService } from './user.service';
+import { Request } from 'express';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @ApiTags('User')
 @Controller({ path: 'user', version: '1' })
@@ -25,5 +28,19 @@ export class UserController {
   })
   async loginAdmin(@Body() authDto: AuthDto) {
     return await this.userService.loginUser(authDto);
+  }
+
+  @Put()
+  @UseGuards(AuthGuard())
+  @ApiSecurity('Authorization')
+  @ApiBody({ type: UpdateUserDto })
+  @ApiOperation({
+    summary: 'Update user account (must be authenticated as user)',
+  })
+  async updateAdmin(
+    @Body() updateUserdto: UpdateUserDto,
+    @Req() request: Request,
+  ): Promise<void> {
+    await this.userService.updateUser(updateUserdto, request.user);
   }
 }
