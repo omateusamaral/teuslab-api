@@ -17,7 +17,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
-import { AuthAdminDto } from './dto/auth-admin.dto';
+import { AuthDto } from './dto/auth.dto';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { Request } from 'express';
@@ -29,12 +29,12 @@ export class AdminController {
   constructor(private adminService: AdminService) {}
 
   @Post('/login')
-  @ApiBody({ type: AuthAdminDto })
+  @ApiBody({ type: AuthDto })
   @ApiOperation({
     summary: 'Sign in admin account',
   })
-  async loginAdmin(@Body() authAdminDto: AuthAdminDto) {
-    return await this.adminService.loginAdmin(authAdminDto);
+  async loginAdmin(@Body() authDto: AuthDto) {
+    return await this.adminService.loginAdmin(authDto);
   }
   @Post()
   @UseGuards(AuthGuard())

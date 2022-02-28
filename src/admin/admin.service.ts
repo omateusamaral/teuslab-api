@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
 import { Repository } from 'typeorm';
 import { Admin } from './admin.entity';
-import { AuthAdminDto } from './dto/auth-admin.dto';
+import { AuthDto } from './dto/auth.dto';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
@@ -64,7 +64,7 @@ export class AdminService {
     }
   }
 
-  async loginAdmin({ email, password }: AuthAdminDto): Promise<string> {
+  async loginAdmin({ email, password }: AuthDto): Promise<string> {
     try {
       const admin = await this.adminExists(email);
       if (!admin) {
