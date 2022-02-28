@@ -43,8 +43,11 @@ export class AdminController {
   @ApiOperation({
     summary: 'Register a new admin account',
   })
-  async createAdmin(@Body() creatAdminDto: CreateAdminDto): Promise<string> {
-    return await this.adminService.createAdmin(creatAdminDto);
+  async createAdmin(
+    @Body() creatAdminDto: CreateAdminDto,
+    @Req() request: Request,
+  ): Promise<string> {
+    return await this.adminService.createAdmin(creatAdminDto, request.user);
   }
 
   @Put()
@@ -68,7 +71,10 @@ export class AdminController {
   @ApiOperation({
     summary: 'list admins account (must be authenticated as admin)',
   })
-  async getAdmins(@Query('email') email?: string): Promise<Admin[]> {
-    return await this.adminService.getAdmins(email);
+  async getAdmins(
+    @Req() request: Request,
+    @Query('email') email?: string,
+  ): Promise<Admin[]> {
+    return await this.adminService.getAdmins(request.user, email);
   }
 }

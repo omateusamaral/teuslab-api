@@ -13,6 +13,7 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { encriptPassword } from '../utils/bcrypt-password';
+import { SecurityValidation } from '../utils/security-validation';
 
 @Injectable()
 export class AdminService {
@@ -20,30 +21,19 @@ export class AdminService {
     @InjectRepository(Admin)
     private adminRepository: Repository<Admin>,
     private jwtService: JwtService,
+    private securityValidation: SecurityValidation,
   ) {}
 
-  async adminExists(email: string): Promise<Admin | undefined> {
-    const admin = await this.adminRepository
-      .createQueryBuilder('admin')
-      .where('admin.email=:email', {
-        email,
-      })
-      .addSelect('admin.password')
-      .getOne();
-
-    if (!admin) {
-      return undefined;
-    }
-    return admin;
-  }
-
-  async createAdmin({
-    email,
-    password,
-    username,
-  }: CreateAdminDto): Promise<string> {
+  async createAdmin(
+    { email, password, username }: CreateAdminDto,
+    admin: any,
+  ): Promise<string> {
     try {
-      if (await this.adminExists(email)) {
+      if (!(await this.securityValidation.adminExists(admin.email))) {
+        throw new UnauthorizedException('You are not connected or not allowed');
+      }
+
+      if (await this.securityValidation.adminExists(email)) {
         throw new BadRequestException('Email already in use');
       }
 
@@ -52,13 +42,13 @@ export class AdminService {
         username: username,
         password: password,
       });
-      const admin = await this.adminRepository.insert(adminEntityObject);
+      const response = await this.adminRepository.insert(adminEntityObject);
 
-      if (!admin) {
+      if (!response) {
         throw new BadRequestException('Could not insert the account');
       }
 
-      return admin.raw[0].adminId;
+      return response.raw[0].adminId;
     } catch (error) {
       throw error;
     }
@@ -66,7 +56,7 @@ export class AdminService {
 
   async loginAdmin({ email, password }: AuthDto): Promise<string> {
     try {
-      const admin = await this.adminExists(email);
+      const admin = await this.securityValidation.adminExists(email);
       if (!admin) {
         throw new BadRequestException('Email not found');
       }
@@ -89,15 +79,17 @@ export class AdminService {
 
   async updateAdmin(updateAdmindto: UpdateAdminDto, admin: any): Promise<void> {
     try {
-      const adminLoggedObject = await this.adminExists(admin.email);
+      const adminLoggedObject = await this.securityValidation.adminExists(
+        admin.email,
+      );
 
       if (!adminLoggedObject) {
-        throw new UnauthorizedException(
-          'You are not connected or not allowed to update',
-        );
+        throw new UnauthorizedException('You are not connected or not allowed');
       }
 
-      const adminObject = await this.adminExists(updateAdmindto.email);
+      const adminObject = await this.securityValidation.adminExists(
+        updateAdmindto.email,
+      );
 
       if (adminObject.email !== admin.email) {
         throw new BadRequestException('This email already in use');
@@ -126,8 +118,11 @@ export class AdminService {
     }
   }
 
-  async getAdmins(email?: string): Promise<Admin[]> {
+  async getAdmins(admin: any, email?: string): Promise<Admin[]> {
     try {
+      if (!(await this.securityValidation.adminExists(admin.email))) {
+        throw new UnauthorizedException('You are not connected or not allowed');
+      }
       let admins = this.adminRepository.createQueryBuilder('admin');
 
       if (email) {

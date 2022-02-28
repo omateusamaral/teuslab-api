@@ -3,6 +3,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from '../user/user.entity';
+import { SecurityValidation } from '../utils/security-validation';
 import { AdminController } from './admin.controller';
 import { Admin } from './admin.entity';
 import { AdminService } from './admin.service';
@@ -22,11 +24,11 @@ import { AdminJwtStrategy } from './jwt.strategy';
         },
       }),
     }),
-    TypeOrmModule.forFeature([Admin]),
+    TypeOrmModule.forFeature([Admin, User]),
   ],
 
   controllers: [AdminController],
-  providers: [AdminService, AdminJwtStrategy],
+  providers: [AdminService, AdminJwtStrategy, SecurityValidation],
   exports: [AdminJwtStrategy, PassportModule],
 })
 export class AdminModule {}

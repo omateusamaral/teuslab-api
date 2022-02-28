@@ -6,11 +6,12 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
-import { AuthDto } from 'src/admin/dto/auth.dto';
+import { AuthDto } from '../admin/dto/auth.dto';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './user.entity';
 import * as bcrypt from 'bcrypt';
+import { SecurityValidation } from '../utils/security-validation';
 
 @Injectable()
 export class UserService {
@@ -18,22 +19,8 @@ export class UserService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private jwtService: JwtService,
+    private securityValidation: SecurityValidation,
   ) {}
-
-  async userExists(email: string): Promise<User | undefined> {
-    const user = await this.userRepository
-      .createQueryBuilder('user')
-      .where('user.email=:email', {
-        email,
-      })
-      .addSelect('user.password')
-      .getOne();
-
-    if (!user) {
-      return undefined;
-    }
-    return user;
-  }
 
   async createUser({
     email,
@@ -41,7 +28,7 @@ export class UserService {
     username,
   }: CreateUserDto): Promise<void> {
     try {
-      if (await this.userExists(email)) {
+      if (await this.securityValidation.userExists(email)) {
         throw new BadRequestException('Email already in use');
       }
 
@@ -61,7 +48,7 @@ export class UserService {
 
   async loginUser({ email, password }: AuthDto): Promise<string> {
     try {
-      const user = await this.userExists(email);
+      const user = await this.securityValidation.userExists(email);
       if (!user) {
         throw new BadRequestException('User not found');
       }
