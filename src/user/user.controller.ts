@@ -1,5 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { AuthDto } from '../admin/dto/auth.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserService } from './user.service';
 
@@ -11,9 +12,18 @@ export class UserController {
   @Post()
   @ApiBody({ type: CreateUserDto })
   @ApiOperation({
-    summary: 'Register a new admin account',
+    summary: 'Register a new user account',
   })
-  async createAdmin(@Body() creatAdminDto: CreateUserDto): Promise<void> {
-    await this.userService.createUser(creatAdminDto);
+  async createUser(@Body() creatUserDto: CreateUserDto): Promise<void> {
+    await this.userService.createUser(creatUserDto);
+  }
+
+  @Post('/login')
+  @ApiBody({ type: AuthDto })
+  @ApiOperation({
+    summary: 'Sign in user account',
+  })
+  async loginAdmin(@Body() authDto: AuthDto) {
+    return await this.userService.loginUser(authDto);
   }
 }
