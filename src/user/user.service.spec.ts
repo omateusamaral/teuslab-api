@@ -1,7 +1,11 @@
-import { BadRequestException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Admin } from '../admin/admin.entity';
-import { InsertResult, Repository, UpdateResult } from 'typeorm';
+import { DeleteResult, InsertResult, Repository, UpdateResult } from 'typeorm';
 import { User } from './user.entity';
 import { UserService } from './user.service';
 import { SecurityValidation } from '../utils/security-validation';
@@ -118,6 +122,21 @@ describe('UserService', () => {
 
       await expect(sut.updateUser(payload, user)).resolves.toBeUndefined();
     });
+
+    it('should delete user', () => {
+      const { sut, securityValidation, userRepositoryMock } = makeSut();
+
+      const deleteResult = new DeleteResult();
+      deleteResult.affected = 1;
+      const user = new User();
+      user.userId = '8ceffe30-f44b-40c6-96a9-42909c80a3ee';
+
+      jest.spyOn(securityValidation, 'userExists').mockResolvedValue(user);
+
+      jest.spyOn(userRepositoryMock, 'delete').mockResolvedValue(deleteResult);
+
+      expect(sut.deleteUser(new User())).resolves.toBeUndefined();
+    });
   });
 
   describe('Error tests', () => {
@@ -218,7 +237,37 @@ describe('UserService', () => {
       jest.spyOn(userRepositoryMock, 'update').mockResolvedValue(updateResult);
 
       await expect(sut.updateUser(payload, user)).rejects.toThrow(
-        new BadRequestException('Could not update account'),
+        new ConflictException('Could not update account'),
+      );
+    });
+
+    it('should not find the user', () => {
+      const { sut, securityValidation } = makeSut();
+
+      const user = new User();
+      user.userId = '';
+
+      jest.spyOn(securityValidation, 'userExists').mockResolvedValue(user);
+
+      expect(sut.deleteUser(new User())).rejects.toThrow(
+        new UnauthorizedException('You are not connected'),
+      );
+    });
+
+    it('should delete user', () => {
+      const { sut, securityValidation, userRepositoryMock } = makeSut();
+
+      const deleteResult = new DeleteResult();
+      deleteResult.affected = 0;
+      const user = new User();
+      user.userId = '8ceffe30-f44b-40c6-96a9-42909c80a3ee';
+
+      jest.spyOn(securityValidation, 'userExists').mockResolvedValue(user);
+
+      jest.spyOn(userRepositoryMock, 'delete').mockResolvedValue(deleteResult);
+
+      expect(sut.deleteUser(new User())).rejects.toThrow(
+        new ConflictException('could not delete'),
       );
     });
   });
