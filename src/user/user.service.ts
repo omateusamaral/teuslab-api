@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -105,7 +106,25 @@ export class UserService {
       );
 
       if (result.affected === 0) {
-        throw new BadRequestException('Could not update account');
+        throw new ConflictException('Could not update account');
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async deleteUser(user: any): Promise<void> {
+    try {
+      const { userId } = await this.securityValidation.userExists(user.email);
+
+      if (!userId.length) {
+        throw new UnauthorizedException('You are not connected');
+      }
+
+      const response = await this.userRepository.delete(userId);
+
+      if (response.affected === 0) {
+        throw new ConflictException('could not delete');
       }
     } catch (error) {
       throw error;

@@ -1,4 +1,12 @@
-import { Body, Controller, Post, Put, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Post,
+  Put,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBody, ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { AuthDto } from '../admin/dto/auth.dto';
@@ -35,12 +43,22 @@ export class UserController {
   @ApiSecurity('Authorization')
   @ApiBody({ type: UpdateUserDto })
   @ApiOperation({
-    summary: 'Update user account (must be authenticated as user)',
+    summary: "Update user's account (must be authenticated as user)",
   })
   async updateAdmin(
     @Body() updateUserdto: UpdateUserDto,
     @Req() request: Request,
   ): Promise<void> {
     await this.userService.updateUser(updateUserdto, request.user);
+  }
+
+  @Delete()
+  @UseGuards(AuthGuard())
+  @ApiSecurity('Authorization')
+  @ApiOperation({
+    summary: "Delete user's account (must be authenticated as user)",
+  })
+  async deleteAdmin(@Req() request: Request): Promise<void> {
+    await this.userService.deleteUser(request.user);
   }
 }
