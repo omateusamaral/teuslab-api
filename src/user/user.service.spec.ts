@@ -1,7 +1,7 @@
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Admin } from '../admin/admin.entity';
-import { InsertResult, Repository } from 'typeorm';
+import { InsertResult, Repository, UpdateResult } from 'typeorm';
 import { User } from './user.entity';
 import { UserService } from './user.service';
 import { SecurityValidation } from '../utils/security-validation';
@@ -79,6 +79,45 @@ describe('UserService', () => {
 
       await expect(sut.loginUser(payload)).resolves.toEqual('123');
     });
+
+    it('should update the user account', async () => {
+      const { securityValidation, sut, userRepositoryMock } = makeSut();
+
+      const updateResult = new UpdateResult();
+      updateResult.affected = 1;
+      const user = new User();
+      user.password = 'password';
+      user.email = '';
+      user.username = payload.username;
+      user.userId = '8ceffe30-f44b-40c6-96a9-42909c80a3ee';
+      jest.spyOn(securityValidation, 'userExists').mockResolvedValueOnce(user);
+
+      jest.spyOn(securityValidation, 'userExists').mockResolvedValueOnce(user);
+
+      jest.spyOn(userRepositoryMock, 'update').mockResolvedValue(updateResult);
+
+      await expect(sut.updateUser(payload, user)).resolves.toBeUndefined();
+    });
+
+    it('should update the user account not passing password', async () => {
+      const { securityValidation, sut, userRepositoryMock } = makeSut();
+
+      const updateResult = new UpdateResult();
+      updateResult.affected = 1;
+      const user = new User();
+      user.password = 'password';
+      user.email = '';
+      user.username = payload.username;
+      payload.password = '';
+      user.userId = '8ceffe30-f44b-40c6-96a9-42909c80a3ee';
+      jest.spyOn(securityValidation, 'userExists').mockResolvedValueOnce(user);
+
+      jest.spyOn(securityValidation, 'userExists').mockResolvedValueOnce(user);
+
+      jest.spyOn(userRepositoryMock, 'update').mockResolvedValue(updateResult);
+
+      await expect(sut.updateUser(payload, user)).resolves.toBeUndefined();
+    });
   });
 
   describe('Error tests', () => {
@@ -128,6 +167,58 @@ describe('UserService', () => {
 
       await expect(sut.loginUser(payload)).rejects.toThrow(
         new UnauthorizedException('Please check your login credentials'),
+      );
+    });
+
+    it('should not update because are not connected', () => {
+      const { sut, securityValidation } = makeSut();
+
+      jest
+        .spyOn(securityValidation, 'userExists')
+        .mockResolvedValueOnce(new User());
+
+      expect(sut.updateUser(payload, new User())).rejects.toThrow(
+        new UnauthorizedException('You are not connected or not allowed'),
+      );
+    });
+
+    it('should not update because email already in use', () => {
+      const { sut, securityValidation } = makeSut();
+
+      const user = new User();
+      user.userId = '8ceffe30-f44b-40c6-96a9-42909c80a3ee';
+
+      jest.spyOn(securityValidation, 'userExists').mockResolvedValueOnce(user);
+
+      const userExists = new User();
+      userExists.email = 'test@email.com';
+      jest
+        .spyOn(securityValidation, 'userExists')
+        .mockResolvedValueOnce(userExists);
+
+      expect(sut.updateUser(payload, new User())).rejects.toThrow(
+        new BadRequestException('This email already in use'),
+      );
+    });
+
+    it('should not update the user account', async () => {
+      const { securityValidation, sut, userRepositoryMock } = makeSut();
+
+      const updateResult = new UpdateResult();
+      updateResult.affected = 0;
+      const user = new User();
+      user.password = 'password';
+      user.email = '';
+      user.username = payload.username;
+      user.userId = '8ceffe30-f44b-40c6-96a9-42909c80a3ee';
+      jest.spyOn(securityValidation, 'userExists').mockResolvedValueOnce(user);
+
+      jest.spyOn(securityValidation, 'userExists').mockResolvedValueOnce(user);
+
+      jest.spyOn(userRepositoryMock, 'update').mockResolvedValue(updateResult);
+
+      await expect(sut.updateUser(payload, user)).rejects.toThrow(
+        new BadRequestException('Could not update account'),
       );
     });
   });
