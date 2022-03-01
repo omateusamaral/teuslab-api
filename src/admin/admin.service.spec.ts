@@ -6,6 +6,7 @@ import { InsertResult, Repository, UpdateResult } from 'typeorm';
 import { Admin } from './admin.entity';
 import { AdminService } from './admin.service';
 import { User } from '../user/user.entity';
+import { RoleType } from '../types/validate-types.interface';
 
 describe('AdminService', () => {
   const makeSut = () => {
@@ -56,6 +57,7 @@ describe('AdminService', () => {
     email: 'admin@example.com',
     password: 'password',
     username: 'admin',
+    role: RoleType.ADMIN,
   };
   describe('Pass tests', () => {
     it('should register a new admin', () => {

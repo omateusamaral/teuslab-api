@@ -9,6 +9,7 @@ import { DeleteResult, InsertResult, Repository, UpdateResult } from 'typeorm';
 import { User } from './user.entity';
 import { UserService } from './user.service';
 import { SecurityValidation } from '../utils/security-validation';
+import { RoleType } from '../types/validate-types.interface';
 
 describe('UserService', () => {
   const makeSut = () => {
@@ -52,6 +53,7 @@ describe('UserService', () => {
     email: 'user@example.com',
     password: 'password',
     username: 'user',
+    role: RoleType.USER,
   };
 
   describe('Pass tests', () => {
