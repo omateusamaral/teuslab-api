@@ -54,7 +54,7 @@ export class AdminService {
     }
   }
 
-  async loginAdmin({ email, password }: AuthDto): Promise<string> {
+  async loginAdmin({ email, password, role }: AuthDto): Promise<string> {
     try {
       const admin = await this.securityValidation.adminExists(email);
       if (!admin) {
@@ -65,6 +65,7 @@ export class AdminService {
         const payload = {
           email,
           username: admin.username,
+          role,
         };
         const accessToken = this.jwtService.sign(payload);
 

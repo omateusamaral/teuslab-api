@@ -5,7 +5,6 @@ import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Admin } from '../admin/admin.entity';
 import { SecurityValidation } from '../utils/security-validation';
-import { UserJwtStrategy } from './jwt.strategy';
 import { UserController } from './user.controller';
 import { User } from './user.entity';
 import { UserService } from './user.service';
@@ -28,7 +27,7 @@ import { UserService } from './user.service';
   ],
 
   controllers: [UserController],
-  providers: [UserService, UserJwtStrategy, SecurityValidation],
-  exports: [UserJwtStrategy, PassportModule],
+  providers: [UserService, SecurityValidation],
+  exports: [JwtModule, PassportModule],
 })
 export class UserModule {}

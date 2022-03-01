@@ -8,7 +8,7 @@ import { SecurityValidation } from '../utils/security-validation';
 import { AdminController } from './admin.controller';
 import { Admin } from './admin.entity';
 import { AdminService } from './admin.service';
-import { AdminJwtStrategy } from './jwt.strategy';
+import { JwtStrategy } from '../strategy/jwt.strategy';
 
 @Module({
   imports: [
@@ -28,7 +28,7 @@ import { AdminJwtStrategy } from './jwt.strategy';
   ],
 
   controllers: [AdminController],
-  providers: [AdminService, AdminJwtStrategy, SecurityValidation],
-  exports: [AdminJwtStrategy, PassportModule],
+  providers: [AdminService, JwtStrategy, SecurityValidation],
+  exports: [JwtModule, PassportModule],
 })
 export class AdminModule {}

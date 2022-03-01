@@ -49,7 +49,7 @@ export class UserService {
     }
   }
 
-  async loginUser({ email, password }: AuthDto): Promise<string> {
+  async loginUser({ email, password, role }: AuthDto): Promise<string> {
     try {
       const user = await this.securityValidation.userExists(email);
       if (!user) {
@@ -60,6 +60,7 @@ export class UserService {
         const payload = {
           email,
           username: user.username,
+          role,
         };
         const accessToken = this.jwtService.sign(payload);
 
