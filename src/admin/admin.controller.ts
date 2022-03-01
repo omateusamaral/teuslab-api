@@ -24,6 +24,7 @@ import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { Request } from 'express';
 import { Admin } from './admin.entity';
+import { IGetUsers } from '../types/get-users.interface';
 
 @ApiTags('Admin')
 @Controller({ path: 'admin', version: '1' })
@@ -92,5 +93,26 @@ export class AdminController {
     @Param('userId') userId: string,
   ): Promise<void> {
     await this.adminService.deleteUser(request.user, userId);
+  }
+
+  @Get('get-users')
+  @UseGuards(AuthGuard())
+  @ApiSecurity('Authorization')
+  @ApiQuery({ name: 'email', required: false })
+  @ApiOperation({
+    summary: 'get all users (must be authenticated as admin)',
+  })
+  async getUsers(
+    @Req() request: Request,
+    @Query('page') page: number,
+    @Query('usersPerPage') usersPerPage: number,
+    @Query('email') email?: string,
+  ): Promise<IGetUsers> {
+    return await this.adminService.getUsers(
+      request.user,
+      page,
+      usersPerPage,
+      email,
+    );
   }
 }

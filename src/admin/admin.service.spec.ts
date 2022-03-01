@@ -40,6 +40,13 @@ describe('AdminService', () => {
       where: () => queryBuilderGetMany,
       getMany: () => [new Admin()],
     };
+    const queryBuilderGetUsers: any = {
+      where: () => queryBuilderGetUsers,
+      getCount: () => 1,
+      offset: () => queryBuilderGetUsers,
+      limit: () => queryBuilderGetUsers,
+      getMany: () => [new User()],
+    };
     return {
       sut,
       adminRepositoryMock,
@@ -48,6 +55,7 @@ describe('AdminService', () => {
       queryBuilderGetMany,
       securityValidation,
       userRepositoryMock,
+      queryBuilderGetUsers,
     };
   };
 
@@ -196,6 +204,32 @@ describe('AdminService', () => {
       expect(
         sut.deleteUser(new Admin(), '8ceffe30-f44b-40c6-96a9-42909c80a3ee'),
       ).resolves.toBeUndefined();
+    });
+
+    it('should get users', () => {
+      const {
+        sut,
+        securityValidation,
+        userRepositoryMock,
+        queryBuilderGetUsers,
+      } = makeSut();
+
+      jest
+        .spyOn(securityValidation, 'adminExists')
+        .mockResolvedValue(new Admin());
+
+      jest
+        .spyOn(userRepositoryMock, 'createQueryBuilder')
+        .mockReturnValue(queryBuilderGetUsers);
+
+      expect(
+        sut.getUsers(new Admin(), 1, 10, 'user@email.com'),
+      ).resolves.toEqual({
+        users: [new User()],
+        page: 1,
+        usersPerPage: 10,
+        countUsers: 1,
+      });
     });
   });
 
@@ -379,6 +413,19 @@ describe('AdminService', () => {
       expect(
         sut.deleteUser(new Admin(), '8ceffe30-f44b-40c6-96a9-42909c80a3ee'),
       ).rejects.toThrow(new ConflictException('could not delete'));
+    });
+
+    it('should not find admin account', () => {
+      const { sut, securityValidation } = makeSut();
+      jest
+        .spyOn(securityValidation, 'adminExists')
+        .mockResolvedValue(undefined);
+
+      expect(
+        sut.getUsers(new Admin(), 1, 10, 'user@email.com'),
+      ).rejects.toThrow(
+        new UnauthorizedException('You are not connected or not allowed'),
+      );
     });
   });
 });

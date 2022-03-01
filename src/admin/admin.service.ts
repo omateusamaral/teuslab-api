@@ -17,6 +17,7 @@ import { encriptPassword } from '../utils/bcrypt-password';
 import { SecurityValidation } from '../utils/security-validation';
 import { User } from '../user/user.entity';
 import { checkUUID } from '../utils/check-uuid';
+import { IGetUsers } from '../types/get-users.interface';
 
 @Injectable()
 export class AdminService {
@@ -158,6 +159,42 @@ export class AdminService {
       if (response.affected === 0) {
         throw new ConflictException('could not delete');
       }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getUsers(
+    admin: any,
+    page: number,
+    usersPerPage: number,
+    email?: string,
+  ): Promise<IGetUsers> {
+    try {
+      if (!(await this.securityValidation.adminExists(admin.email))) {
+        throw new UnauthorizedException('You are not connected or not allowed');
+      }
+
+      let users = this.userRepository.createQueryBuilder('users');
+
+      if (email) {
+        users = users.where('users.email LIKE :email', {
+          email: `%${email}%`,
+        });
+      }
+
+      const countUsers = await users.getCount();
+      const result = await users
+        .offset((page - 1) * usersPerPage)
+        .limit(usersPerPage)
+        .getMany();
+
+      return {
+        users: result,
+        page: page,
+        usersPerPage,
+        countUsers,
+      };
     } catch (error) {
       throw error;
     }
