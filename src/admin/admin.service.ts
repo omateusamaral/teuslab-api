@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -14,6 +15,8 @@ import { JwtService } from '@nestjs/jwt';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { encriptPassword } from '../utils/bcrypt-password';
 import { SecurityValidation } from '../utils/security-validation';
+import { User } from '../user/user.entity';
+import { checkUUID } from '../utils/check-uuid';
 
 @Injectable()
 export class AdminService {
@@ -22,6 +25,8 @@ export class AdminService {
     private adminRepository: Repository<Admin>,
     private jwtService: JwtService,
     private securityValidation: SecurityValidation,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
   ) {}
 
   async createAdmin(
@@ -112,7 +117,7 @@ export class AdminService {
       );
 
       if (result.affected === 0) {
-        throw new BadRequestException('Could not update account');
+        throw new ConflictException('Could not update account');
       }
     } catch (error) {
       throw error;
@@ -133,6 +138,26 @@ export class AdminService {
       }
 
       return await admins.getMany();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async deleteUser(admin: any, userId: string) {
+    try {
+      if (!(await this.securityValidation.adminExists(admin.email))) {
+        throw new UnauthorizedException('You are not connected or not allowed');
+      }
+
+      if (!checkUUID(userId)) {
+        throw new BadRequestException('It is not a valid user ID');
+      }
+
+      const response = await this.userRepository.delete(userId);
+
+      if (response.affected === 0) {
+        throw new ConflictException('could not delete');
+      }
     } catch (error) {
       throw error;
     }

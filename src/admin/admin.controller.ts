@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  Param,
   Post,
   Put,
   Query,
@@ -76,5 +78,19 @@ export class AdminController {
     @Query('email') email?: string,
   ): Promise<Admin[]> {
     return await this.adminService.getAdmins(request.user, email);
+  }
+
+  @Delete('delete-user/:userId')
+  @UseGuards(AuthGuard())
+  @ApiSecurity('Authorization')
+  @ApiOperation({
+    summary:
+      'delete an user account given  an userId (must be authenticated as admin)',
+  })
+  async deleteUser(
+    @Req() request: Request,
+    @Param('userId') userId: string,
+  ): Promise<void> {
+    await this.adminService.deleteUser(request.user, userId);
   }
 }
