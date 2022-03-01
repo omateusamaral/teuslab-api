@@ -1,8 +1,8 @@
-import { UnauthorizedException } from '@nestjs/common';
+import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { BadRequestException } from '@nestjs/common/exceptions/bad-request.exception';
 import { JwtService } from '@nestjs/jwt';
 import { SecurityValidation } from '../utils/security-validation';
-import { InsertResult, Repository, UpdateResult } from 'typeorm';
+import { DeleteResult, InsertResult, Repository, UpdateResult } from 'typeorm';
 import { Admin } from './admin.entity';
 import { AdminService } from './admin.service';
 import { User } from '../user/user.entity';
@@ -27,6 +27,7 @@ describe('AdminService', () => {
       adminRepositoryMock,
       jwtService,
       securityValidation,
+      userRepositoryMock,
     );
 
     const queryBuilder: any = {
@@ -46,6 +47,7 @@ describe('AdminService', () => {
       queryBuilder,
       queryBuilderGetMany,
       securityValidation,
+      userRepositoryMock,
     };
   };
 
@@ -180,6 +182,21 @@ describe('AdminService', () => {
         new Admin(),
       ]);
     });
+
+    it('should admin delete an user', () => {
+      const { sut, securityValidation, userRepositoryMock } = makeSut();
+      const deleteResult = new DeleteResult();
+      deleteResult.affected = 1;
+
+      jest
+        .spyOn(securityValidation, 'adminExists')
+        .mockResolvedValue(new Admin());
+      jest.spyOn(userRepositoryMock, 'delete').mockResolvedValue(deleteResult);
+
+      expect(
+        sut.deleteUser(new Admin(), '8ceffe30-f44b-40c6-96a9-42909c80a3ee'),
+      ).resolves.toBeUndefined();
+    });
   });
 
   describe('Error tests', () => {
@@ -299,7 +316,7 @@ describe('AdminService', () => {
       jest.spyOn(adminRepositoryMock, 'update').mockResolvedValue(updateResult);
 
       await expect(sut.updateAdmin(payload, admin)).rejects.toThrow(
-        new BadRequestException('Could not update account'),
+        new ConflictException('Could not update account'),
       );
     });
 
@@ -323,6 +340,45 @@ describe('AdminService', () => {
       expect(sut.getAdmins(new Admin(), payload.email)).rejects.toThrow(
         new UnauthorizedException('You are not connected or not allowed'),
       );
+    });
+
+    it('should not found admin account', () => {
+      const { sut, securityValidation } = makeSut();
+      jest
+        .spyOn(securityValidation, 'adminExists')
+        .mockResolvedValue(undefined);
+
+      expect(
+        sut.deleteUser(new Admin(), '8ceffe30-f44b-40c6-96a9-42909c80a3ee'),
+      ).rejects.toThrow(
+        new UnauthorizedException('You are not connected or not allowed'),
+      );
+    });
+
+    it('should return error about user uuid is not valid', () => {
+      const { sut, securityValidation } = makeSut();
+      jest
+        .spyOn(securityValidation, 'adminExists')
+        .mockResolvedValue(new Admin());
+
+      expect(sut.deleteUser(new Admin(), 'not valid')).rejects.toThrow(
+        new BadRequestException('It is not a valid user ID'),
+      );
+    });
+
+    it('should admin delete an user', () => {
+      const { sut, securityValidation, userRepositoryMock } = makeSut();
+      const deleteResult = new DeleteResult();
+      deleteResult.affected = 0;
+
+      jest
+        .spyOn(securityValidation, 'adminExists')
+        .mockResolvedValue(new Admin());
+      jest.spyOn(userRepositoryMock, 'delete').mockResolvedValue(deleteResult);
+
+      expect(
+        sut.deleteUser(new Admin(), '8ceffe30-f44b-40c6-96a9-42909c80a3ee'),
+      ).rejects.toThrow(new ConflictException('could not delete'));
     });
   });
 });
