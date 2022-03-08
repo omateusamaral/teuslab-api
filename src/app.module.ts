@@ -4,6 +4,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AdminModule } from './admin/admin.module';
+import { ArticleModule } from './article/article.module';
 import { UserModule } from './user/user.module';
 
 @Module({
@@ -33,6 +34,7 @@ import { UserModule } from './user/user.module';
     }),
     AdminModule,
     UserModule,
+    ArticleModule,
   ],
   controllers: [],
   providers: [

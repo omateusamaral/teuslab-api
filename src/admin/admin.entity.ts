@@ -4,9 +4,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Article } from '../article/article.entity';
 
 @Entity()
 export class Admin {
@@ -27,6 +29,9 @@ export class Admin {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToMany(() => Article, (article) => article.admin)
+  article: Article[];
 
   @BeforeInsert()
   async hashPassword() {

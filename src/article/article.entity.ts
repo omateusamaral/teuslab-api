@@ -4,6 +4,8 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -17,14 +19,13 @@ export class Article {
   @Column()
   title: string;
 
-  @Column({ type: 'longtext' })
+  @Column({ type: 'text' })
   body: string;
 
   @Column()
   imageUrl: string;
 
-  @OneToOne(() => Admin)
-  @JoinColumn()
+  @ManyToOne(() => Admin, (admin) => admin.article)
   admin: Admin;
 
   @CreateDateColumn()
