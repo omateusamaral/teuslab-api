@@ -15,7 +15,7 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('teus-lab-api')
     .setDescription('The teuslab api')
-    .setVersion('1.0')
+    .setVersion('2.0')
     .addSecurity('Authorization', {
       type: 'apiKey',
       name: 'Authorization',
